@@ -37,6 +37,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Устанавливаем Toolbar вместо ActionBar
         setSupportActionBar(binding.toolbar)
         supportActionBar?.title = "BaroSense"
 
@@ -53,11 +54,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.action_settings) {
-            startActivity(Intent(this, SettingsActivity::class.java))
-            return true
+        return when (item.itemId) {
+            R.id.action_settings -> {
+                startActivity(Intent(this, SettingsActivity::class.java))
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
-        return super.onOptionsItemSelected(item)
     }
 
     private fun loadSettings() {
@@ -104,10 +107,12 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun updateUI() {
-        val (value, unit) = convertPressure(currentPressure)
-        binding.pressureValue.text = "%.1f".format(value)
+        val (convertedValue, unit) = convertPressure(currentPressure)
+        binding.pressureValue.text = "%.1f".format(convertedValue)
         binding.pressureUnit.text = unit
-        animateNeedle(calculateNeedleAngle(value))
+
+        val newAngle = calculateNeedleAngle(convertedValue)
+        animateNeedle(newAngle)
     }
 
     private fun convertPressure(pressure: Float): Pair<Float, String> = when (currentUnit) {
@@ -118,9 +123,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         else -> pressure to "hPa"
     }
 
-    private fun altitudeFromPressure(pressure: Float): Float {
-        return (44330 * (1 - (pressure / 1013.25).pow(0.190284))).toFloat()
-    }    
+    private fun altitudeFromPressure(pressure: Float): Float =
+        (44330 * (1 - (pressure / 1013.25).pow(0.190284))).toFloat()
 
     private fun calculateNeedleAngle(value: Float): Float = when (currentUnit) {
         "hPa" -> (value - 950) * 0.9f
