@@ -14,10 +14,8 @@ import android.view.MenuItem
 import android.view.animation.Animation
 import android.view.animation.RotateAnimation
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.preference.PreferenceManager
 import com.vaheemand.barosense.databinding.ActivityMainBinding
-import java.util.*
 import kotlin.math.pow
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
@@ -28,7 +26,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private var currentPressure = 0f
     private var lastUpdateTime = 0L
     private var updateInterval = 1000L
-    private val pressureHistory = LinkedList<Float>()
+    private val pressureHistory = mutableListOf<Float>()
     private val maxHistorySize = 100
     private val handler = Handler(Looper.getMainLooper())
     private var currentUnit = "hPa"
@@ -36,14 +34,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
-        
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        
-        // Устанавливаем ActionBar
+
         setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayShowTitleEnabled(true)
         supportActionBar?.title = "BaroSense"
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -59,31 +53,29 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_settings -> {
-                startActivity(Intent(this, SettingsActivity::class.java))
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
+        if (item.itemId == R.id.action_settings) {
+            startActivity(Intent(this, SettingsActivity::class.java))
+            return true
         }
+        return super.onOptionsItemSelected(item)
     }
 
     private fun loadSettings() {
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        updateInterval = prefs.getString("update_interval", "1000")?.toLong() ?: 1000L
+        updateInterval = prefs.getString("update_interval", "1000")?.toLongOrNull() ?: 1000L
         currentUnit = prefs.getString("pressure_unit", "hPa") ?: "hPa"
     }
 
     private fun setupGraph() {
-        handler.postDelayed(object : Runnable {
+        handler.post(object : Runnable {
             override fun run() {
                 if (pressureHistory.isNotEmpty()) {
-                    binding.graphView.addDataPoint(pressureHistory.last)
+                    binding.graphView.addDataPoint(pressureHistory.last())
                     binding.graphView.invalidate()
                 }
                 handler.postDelayed(this, updateInterval)
             }
-        }, updateInterval)
+        })
     }
 
     override fun onResume() {
@@ -112,57 +104,52 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun updateUI() {
-        val (convertedValue, unit) = convertPressure(currentPressure)
-        binding.pressureValue.text = String.format(Locale.getDefault(), "%.1f", convertedValue)
+        val (value, unit) = convertPressure(currentPressure)
+        binding.pressureValue.text = "%.1f".format(value)
         binding.pressureUnit.text = unit
-
-        val newAngle = calculateNeedleAngle(convertedValue)
-        animateNeedle(newAngle)
+        animateNeedle(calculateNeedleAngle(value))
     }
 
-    private fun convertPressure(pressure: Float): Pair<Float, String> {
-        return when (currentUnit) {
-            "mmHg" -> Pair(pressure * 0.750062f, "mmHg")
-            "bar" -> Pair(pressure * 0.001f, "bar")
-            "atm" -> Pair(pressure * 0.000986923f, "atm")
-            "m" -> Pair(altitudeFromPressure(pressure), "m")
-            else -> Pair(pressure, "hPa")
-        }
+    private fun convertPressure(pressure: Float): Pair<Float, String> = when (currentUnit) {
+        "mmHg" -> pressure * 0.750062f to "mmHg"
+        "bar" -> pressure * 0.001f to "bar"
+        "atm" -> pressure * 0.000986923f to "atm"
+        "m" -> altitudeFromPressure(pressure) to "m"
+        else -> pressure to "hPa"
     }
 
     private fun altitudeFromPressure(pressure: Float): Float {
-        return (44330 * (1 - (pressure / 1013.25).toDouble().pow(0.190284))).toFloat()
-    }
+        return (44330 * (1 - (pressure / 1013.25).pow(0.190284))).toFloat()
+    }    
 
-    private fun calculateNeedleAngle(value: Float): Float {
-        return when (currentUnit) {
-            "hPa" -> (value - 950) * 0.9f
-            "mmHg" -> (value - 700) * 1.2f
-            "bar" -> (value - 0.9f) * 1000
-            "atm" -> (value - 0.9f) * 1000
-            "m" -> value * 2
-            else -> value
-        }
+    private fun calculateNeedleAngle(value: Float): Float = when (currentUnit) {
+        "hPa" -> (value - 950) * 0.9f
+        "mmHg" -> (value - 700) * 1.2f
+        "bar" -> (value - 0.9f) * 1000
+        "atm" -> (value - 0.9f) * 1000
+        "m" -> value * 2
+        else -> value
     }
 
     private fun animateNeedle(newAngle: Float) {
-        val anim = RotateAnimation(
+        RotateAnimation(
             currentAngle, newAngle,
             Animation.RELATIVE_TO_SELF, 0.5f,
             Animation.RELATIVE_TO_SELF, 0.5f
-        )
+        ).apply {
+            duration = 500
+            fillAfter = true
+            binding.needle.startAnimation(this)
+        }
         currentAngle = newAngle
-        anim.duration = 500
-        anim.fillAfter = true
-        binding.needle.startAnimation(anim)
     }
 
     private fun updateHistory() {
         pressureHistory.add(currentPressure)
         if (pressureHistory.size > maxHistorySize) {
-            pressureHistory.removeFirst()
+            pressureHistory.removeAt(0)
         }
     }
 
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+    override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
 }
