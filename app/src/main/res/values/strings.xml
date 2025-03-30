@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">BaroSense</string>
+    <string name="pressure_unit_title">Pressure Unit</string>
+    <string name="update_interval_title">Update Interval</string>
+</resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ListPreference
+        android:key="pressure_unit"
+        android:title="Pressure Unit"
+        android:entries="@array/pressure_units"
+        android:entryValues="@array/pressure_unit_values"
+        android:defaultValue="hPa"
+        android:summary="Select pressure measurement unit" />
+
+    <ListPreference
+        android:key="update_interval"
+        android:title="Update Interval"
+        android:entries="@array/update_intervals"
+        android:entryValues="@array/update_interval_values"
+        android:defaultValue="1000"
+        android:summary="Select how often to update the pressure reading" />
+</PreferenceScreen>
