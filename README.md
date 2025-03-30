@@ -1,6 +1,6 @@
 # BaroSense - Atmospheric Pressure Monitor
 
-![BaroSense Logo](app/src/main/res/mipmap-xxxhdpi/ic_launcher.webm)
+![BaroSense Logo](app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp)
 
 ## 📌 Description
 BaroSense is an Android application that transforms your device into a precision barometer. It utilizes your phone's built-in pressure sensor to provide real-time atmospheric data with beautiful visualizations and customizable units.
@@ -23,8 +23,6 @@ BaroSense is an Android application that transforms your device into a precision
 | Main Screen | Settings | Settings pressure unit | Settings update interval |
 |-------------|----------|------------------------|--------------------------|
 | ![Main](screenshots/main.jpg) | ![Settings](screenshots/settings.jpg) | ![Settings pressure unit](screenshots/settings_pressure_unit.jpg) | ![Settings update interval](screenshots/settings_update_interval.jpg) |
-
-*(Replace with your actual screenshot paths)*
 
 ## 🛠 Technical Implementation
 - **Language**: 100% Kotlin
