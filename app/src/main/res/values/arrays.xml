@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="pressure_units">
+        <item>hPa</item>
+        <item>mmHg</item>
+        <item>bar</item>
+        <item>atm</item>
+        <item>meters</item>
+    </string-array>
+
+    <string-array name="pressure_unit_values">
+        <item>hPa</item>
+        <item>mmHg</item>
+        <item>bar</item>
+        <item>atm</item>
+        <item>m</item>
+    </string-array>
+
+    <string-array name="update_intervals">
+        <item>Fast (500ms)</item>
+        <item>Normal (1s)</item>
+        <item>Slow (2s)</item>
+    </string-array>
+
+    <string-array name="update_interval_values">
+        <item>500</item>
+        <item>1000</item>
+        <item>2000</item>
+    </string-array>
+</resources>
